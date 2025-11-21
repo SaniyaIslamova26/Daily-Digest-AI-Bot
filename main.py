@@ -1,5 +1,6 @@
-# main.py — 100% рабочая версия для Railway + aiogram 3.13+
+# main.py — АБСОЛЮТНО ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ (Railway + aiogram 3.13+, ноябрь 2025)
 import logging
+import os                     # ← ЭТО БЫЛО ЗАБЫТО!
 from aiohttp import web
 
 from aiogram import Bot, Dispatcher
@@ -12,12 +13,12 @@ from scheduler import start_scheduler
 
 logging.basicConfig(level=logging.INFO)
 
-# ← Правильное создание бота и диспетчера в aiogram 3.13+
+# Бот и диспетчер
 session = AiohttpSession(timeout=180.0)
 bot = Bot(token=config.BOT_TOKEN, session=session)
-dp = Dispatcher()                                   # ← вот так теперь!
+dp = Dispatcher()
 
-# Подключаем все хендлеры (они сами регистрируются на dp)
+# Подключаем все хендлеры (они сами зарегистрируются на dp)
 from main_handlers import *
 
 async def health(request):
@@ -28,13 +29,14 @@ async def webhook(request):
         update = Update.model_validate(await request.json(), context={"bot": bot})
         await dp.feed_update(bot=bot, update=update)
     except Exception as e:
-        logging.error(f"Webhook error: {e}")
+        logging.error(f"Ошибка webhook: {e}")
+        return web.Response(status=500)
     return web.Response()
 
 async def on_startup(_):
     init_db()
     start_scheduler(bot)
-    logging.info("DailyDigest AI полностью запущен — webhook работает, volume /data подключён!")
+    logging.info("DailyDigest AI ЗАПУЩЕН НАВСЕГДА — webhook работает, база в /data, всё идеально!")
 
 app = web.Application()
 app.router.add_get("/", health)
@@ -44,5 +46,5 @@ app.on_startup.append(on_startup)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-
     web.run_app(app, host="0.0.0.0", port=port)
+
