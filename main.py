@@ -42,6 +42,7 @@ app.router.add_get("/health", health)
 app.router.add_post("/webhook", webhook)
 app.on_startup.append(on_startup)
 
-if name == "__main__":
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
+
     web.run_app(app, host="0.0.0.0", port=port)
