@@ -9,6 +9,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 import sqlite3
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 # ← ЭТО ГЛАВНОЕ ДОБАВЛЕНИЕ: импортируем dp из main.py
 from main import dp
@@ -24,7 +25,7 @@ import config
 class Subscription(StatesGroup):
     choosing = State()
 
-def main_menu() -> ReplyKeyboardMarkup:
+def main_keyboard() -> ReplyKeyboardMarkup:
     kb = [
         [KeyboardButton(text="Подписаться на новости"), KeyboardButton(text="Мои категории")],
         [KeyboardButton(text="Получить дайджест сейчас"), KeyboardButton(text="Ещё 10 новостей")],
@@ -191,4 +192,5 @@ async def force_send(callback: types.CallbackQuery):
     await callback.message.edit_text("Рассылка запущена...")
     from scheduler import send_daily_digest
     await send_daily_digest(bot)
+
     await callback.message.edit_text("Рассылка завершена")
