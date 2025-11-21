@@ -6,7 +6,7 @@ from aiohttp import web
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.types import Update
-
+from aiohttp import web, ClientTimeout  
 import config
 from db import init_db
 from scheduler import start_scheduler
@@ -14,7 +14,9 @@ from scheduler import start_scheduler
 logging.basicConfig(level=logging.INFO)
 
 # Бот и диспетчер
-session = AiohttpSession(timeout=180.0)
+session = AiohttpSession(
+    timeout=ClientTimeout(total=0)   
+)
 bot = Bot(token=config.BOT_TOKEN, session=session)
 dp = Dispatcher()
 
@@ -46,6 +48,7 @@ app.on_startup.append(on_startup)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     web.run_app(app, host="0.0.0.0", port=port)
+
 
 
 
