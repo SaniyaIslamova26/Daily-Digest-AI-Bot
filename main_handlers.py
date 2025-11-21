@@ -124,15 +124,32 @@ async def my_categories(message: types.Message):
     await message.answer(text)
 
 
+from asyncio import wait_for, TimeoutError
+
 @dp.message(lambda m: m.text == "Получить дайджест сейчас")
 async def manual_digest(message: types.Message):
     cats = get_user_categories(message.from_user.id)
     if not cats:
         await message.answer("Сначала выберите категории")
         return
-    await message.answer("Формирую дайджест из 12 новостей...")
-    await message.answer(get_daily_digest(cats), parse_mode="HTML", disable_web_page_preview=True)
 
+    await message.answer("Формирую дайджест (макс. 25 сек)…")
+    
+    try:
+        # ← Ждём максимум 25 секунд
+        digest_text = await wait_for(
+            asyncio.to_thread(get_daily_digest, cats),   # запускаем в отдельном потоке
+            timeout=25
+        )
+        await message.answer(digest_text, parse_mode="HTML", disable_web_page_preview=True)
+    except TimeoutError:
+        await message.answer(
+            "⏰ Дайджест формируется слишком долго (более 25 сек).\n"
+            "Попробуйте позже или уменьшите количество категорий.\ Rb"
+        )
+    except Exception as e:
+        logging.error(f"Ошибка дайджеста: {e}")
+        await message.answer("Произошла ошибка при формировании дайджеста")
 
 @dp.message(lambda m: m.text == "Ещё 10 новостей")
 async def more_news(message: types.Message):
@@ -194,4 +211,5 @@ async def force_send(callback: types.CallbackQuery):
     await send_daily_digest(bot)
 
     await callback.message.edit_text("Рассылка завершена")
+
 
