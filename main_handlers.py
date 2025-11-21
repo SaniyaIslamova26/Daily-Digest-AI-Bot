@@ -145,7 +145,7 @@ async def manual_digest(message: types.Message):
     except TimeoutError:
         await message.answer(
             "⏰ Дайджест формируется слишком долго (более 25 сек).\n"
-            "Попробуйте позже или уменьшите количество категорий.\ Rb"
+            "Попробуйте позже или уменьшите количество категорий"
         )
     except Exception as e:
         logging.error(f"Ошибка дайджеста: {e}")
@@ -211,5 +211,6 @@ async def force_send(callback: types.CallbackQuery):
     await send_daily_digest(bot)
 
     await callback.message.edit_text("Рассылка завершена")
+
 
 
