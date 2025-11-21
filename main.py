@@ -26,11 +26,18 @@ async def health(request):
 
 async def webhook(request):
     try:
-        update = Update.model_validate(await request.json(), context={"bot": bot})
+        data = await request.json()
+        update = Update.model_validate(data, context={"bot": bot})
+        
+        # ← НОВАЯ ПРОВЕРКА: если апдейт старше 30 секунд — просто игнорируем
+        update_time = update.update_id // 1000000000   # грубая оценка времени
+        import time
+        if abs(time.time() - update_time) > 30:
+            return web.Response(status=200)   # отвечаем 200, но ничего не делаем
+        
         await dp.feed_update(bot=bot, update=update)
     except Exception as e:
         logging.error(f"Ошибка webhook: {e}")
-        return web.Response(status=500)
     return web.Response()
 
 async def on_startup(_):
@@ -47,4 +54,5 @@ app.on_startup.append(on_startup)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     web.run_app(app, host="0.0.0.0", port=port)
+
 
