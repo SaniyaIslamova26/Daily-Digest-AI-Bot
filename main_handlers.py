@@ -79,7 +79,7 @@ async def cmd_start(message: types.Message):
             InlineKeyboardButton(text="Поделиться ссылкой", url=f"https://t.me/share/url?url={ref_link}")
         ]])
     )
-    await message.answer("Выберите категории:", reply_markup=main_menu())
+    await message.answer("Выберите категории:", reply_markup=main_keyboard())
 
 @dp.message(lambda m: m.text == "Подписаться на новости")
 async def subscribe_start(message: types.Message, state: FSMContext):
@@ -194,3 +194,4 @@ async def force_send(callback: types.CallbackQuery):
     await send_daily_digest(bot)
 
     await callback.message.edit_text("Рассылка завершена")
+
