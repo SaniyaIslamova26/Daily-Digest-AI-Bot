@@ -10,6 +10,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 import sqlite3
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+import logging
 
 # ← ЭТО ГЛАВНОЕ ДОБАВЛЕНИЕ: импортируем dp из main.py
 from main import dp
@@ -211,6 +212,7 @@ async def force_send(callback: types.CallbackQuery):
     await send_daily_digest(bot)
 
     await callback.message.edit_text("Рассылка завершена")
+
 
 
 
