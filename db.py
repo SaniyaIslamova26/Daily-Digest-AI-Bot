@@ -1,14 +1,17 @@
 # Модуль работы с базой данных SQLite
-
+# db.py — ИСПРАВЛЕННАЯ ВЕРСИЯ (создаёт папку /data, если её нет)
 import sqlite3
-from datetime import datetime, timedelta
 import json
 import os
+from datetime import datetime, timedelta
 
 DB_PATH = "/data/daily_digest.db"
+DB_DIR = "/data"
 
 def init_db() -> None:
-    """Инициализация структуры базы данных"""
+    # ← ВОТ ЭТА СТРОКА РЕШАЕТ ВСЮ ПРОБЛЕМУ:
+    os.makedirs(DB_DIR, exist_ok=True)   # создаём папку /data, если её нет
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
@@ -85,4 +88,5 @@ def get_referrer(user_id: int) -> int:
     cursor.execute('SELECT referrer_id FROM users WHERE user_id = ?', (user_id,))
     row = cursor.fetchone()
     conn.close()
+
     return row[0] if row else 0
