@@ -127,7 +127,7 @@ async def my_categories(message: types.Message):
     await message.answer(text)
 
 
-from asyncio import wait_for, TimeoutError
+from asyncio import wait_for, TimeoutError, CancelledError
 
 @dp.message(lambda m: m.text == "Получить дайджест сейчас")
 async def manual_digest(message: types.Message):
@@ -136,23 +136,27 @@ async def manual_digest(message: types.Message):
         await message.answer("Сначала выберите категории")
         return
 
-    await message.answer("Формирую дайджест (макс. 25 сек)…")
-    
+    await message.answer("Формирую дайджест (макс. 20 сек)…")
+
+    task = None
     try:
-        # ← Ждём максимум 25 секунд
-        digest_text = await wait_for(
-            asyncio.to_thread(get_daily_digest, cats),   # запускаем в отдельном потоке
-            timeout=25
+        task = asyncio.create_task(
+            asyncio.to_thread(get_daily_digest, cats)
         )
+        digest_text = await wait_for(task, timeout=20)
         await message.answer(digest_text, parse_mode="HTML", disable_web_page_preview=True)
     except TimeoutError:
+        if task and not task.done():
+            task.cancel()   # ← ПРИНУДИТЕЛЬНО УБИВАЕМ зависший поток
         await message.answer(
-            "⏰ Дайджест формируется слишком долго (более 25 сек).\n"
-            "Попробуйте позже или уменьшите количество категорий"
+            "Дайджест формируется слишком долго (более 20 сек).\n"
+            "Попробуйте позже или выберите меньше категорий."
         )
+    except CancelledError:
+        pass  # уже отменили
     except Exception as e:
         logging.error(f"Ошибка дайджеста: {e}")
-        await message.answer("Произошла ошибка при формировании дайджеста")
+        await message.answer("Ошибка при формировании дайджеста")
 
 @dp.message(lambda m: m.text == "Ещё 10 новостей")
 async def more_news(message: types.Message):
@@ -214,6 +218,7 @@ async def force_send(callback: types.CallbackQuery):
     await send_daily_digest(bot)
 
     await callback.message.edit_text("Рассылка завершена")
+
 
 
 
