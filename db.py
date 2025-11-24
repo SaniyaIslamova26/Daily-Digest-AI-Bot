@@ -1,31 +1,24 @@
 # Модуль работы с базой данных SQLite
-# db.py — ИСПРАВЛЕННАЯ ВЕРСИЯ (создаёт папку /data, если её нет)
 import sqlite3
 import json
 import os
 from datetime import datetime, timedelta
 
 DB_PATH = "/data/daily_digest.db"
-DB_DIR = "/data"
 
-def init_db() -> None:
-    # ← ВОТ ЭТА СТРОКА РЕШАЕТ ВСЮ ПРОБЛЕМУ:
-    os.makedirs(DB_DIR, exist_ok=True)   # создаём папку /data, если её нет
-    
+def init_db():
+    os.makedirs("/data", exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
             categories TEXT DEFAULT '[]',
-            subscribed INTEGER DEFAULT 1,
-            referrer_id INTEGER DEFAULT 0,
-            unlimited_until TEXT DEFAULT NULL
+            subscribed INTEGER DEFAULT 1
         )
     ''')
     conn.commit()
     conn.close()
-
 def add_user(user_id: int) -> None:
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -90,3 +83,4 @@ def get_referrer(user_id: int) -> int:
     conn.close()
 
     return row[0] if row else 0
+
