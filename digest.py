@@ -14,7 +14,7 @@ def get_daily_digest_cached(categories_tuple):
     # превращаем список в кортеж, чтобы lru_cache работал
     return get_daily_digest(list(categories_tuple))
 
-def get_daily_digest(categories):
+async def get_daily_digest(categories):
     global _last_cache_time, _last_digest_result
     
     now = datetime.now()
@@ -57,4 +57,5 @@ def get_daily_digest(user_categories):
             f"<a href='{item['link']}'>Читать полностью →</a>\n"
         )
     return "\n".join(lines)
+
 
