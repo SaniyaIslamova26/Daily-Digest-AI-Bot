@@ -12,6 +12,7 @@ import sqlite3
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 import logging
 import asyncio
+from asyncio import wait_for, TimeoutError
 
 # ← ЭТО ГЛАВНОЕ ДОБАВЛЕНИЕ: импортируем dp из main.py
 from main import dp
@@ -213,6 +214,7 @@ async def force_send(callback: types.CallbackQuery):
     await send_daily_digest(bot)
 
     await callback.message.edit_text("Рассылка завершена")
+
 
 
 
