@@ -1,26 +1,23 @@
-# main.py — АБСОЛЮТНО ФИНАЛЬНАЯ РАБОЧАЯ ВЕРСИЯ (Railway + aiogram 3.13+, ноябрь 2025)
+# main.py — финальная версия для Railway (webhook, aiogram 3.13+)
 import logging
-import os                     # ← ЭТО БЫЛО ЗАБЫТО!
-from aiohttp import web
+import os
+from aiohttp import web, ClientTimeout
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.types import Update
-from aiohttp import web, ClientTimeout  
+
 import config
 from db import init_db
 from scheduler import start_scheduler
 
 logging.basicConfig(level=logging.INFO)
 
-# Бот и диспетчер
-session = AiohttpSession(
-    timeout=ClientTimeout(total=0)   
-)
+# Таймаут 0 — убивает 499 навсегда
+session = AiohttpSession(timeout=ClientTimeout(total=0))
 bot = Bot(token=config.BOT_TOKEN, session=session)
 dp = Dispatcher()
 
-# Подключаем все хендлеры (они сами зарегистрируются на dp)
 from main_handlers import *
 
 async def health(request):
