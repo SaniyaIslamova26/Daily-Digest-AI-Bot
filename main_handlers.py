@@ -127,8 +127,6 @@ async def my_categories(message: types.Message):
     await message.answer(text)
 
 
-from asyncio import wait_for, TimeoutError, CancelledError
-
 @dp.message(lambda m: m.text == "Получить дайджест сейчас")
 async def manual_digest(message: types.Message):
     cats = get_user_categories(message.from_user.id)
@@ -138,26 +136,23 @@ async def manual_digest(message: types.Message):
 
     await message.answer("Формирую дайджест (макс. 20 сек)…")
 
-    task = None
     try:
-        task = asyncio.create_task(
-            asyncio.to_thread(get_daily_digest, cats)
+        # ← Теперь БЕЗ to_thread — просто await, потому что get_daily_digest уже async!
+        digest_text = await asyncio.wait_for(get_daily_digest(cats), timeout=20)
+        
+        await message.answer(
+            digest_text or "Новостей по вашим категориям пока нет 🤷‍♂️",
+            parse_mode="HTML",
+            disable_web_page_preview=True
         )
-        digest_text = await wait_for(task, timeout=20)
-        await message.answer(digest_text, parse_mode="HTML", disable_web_page_preview=True)
-    except TimeoutError:
-        if task and not task.done():
-            task.cancel()   # ← ПРИНУДИТЕЛЬНО УБИВАЕМ зависший поток
+    except asyncio.TimeoutError:
         await message.answer(
             "Дайджест формируется слишком долго (более 20 сек).\n"
             "Попробуйте позже или выберите меньше категорий."
         )
-    except CancelledError:
-        pass  # уже отменили
     except Exception as e:
         logging.error(f"Ошибка дайджеста: {e}")
-        await message.answer("Ошибка при формировании дайджеста")
-
+        await message.answer("Произошла ошибка при сборе новостей")
 @dp.message(lambda m: m.text == "Ещё 10 новостей")
 async def more_news(message: types.Message):
     cats = get_user_categories(message.from_user.id)
@@ -218,6 +213,7 @@ async def force_send(callback: types.CallbackQuery):
     await send_daily_digest(bot)
 
     await callback.message.edit_text("Рассылка завершена")
+
 
 
 
